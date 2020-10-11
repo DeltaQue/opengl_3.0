@@ -22,7 +22,7 @@ int Window::Initialise()
 	}
 
 	// Setup GLFW Windows Properties
-	// OpenGL version
+	// OpenGL version 3.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	// Core Profile
