@@ -151,7 +151,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Core\Mesh.cpp" />
+    <ClCompile Include="Core\Shader.cpp" />
+    <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\Mesh.h" />
+    <ClInclude Include="Core\Shader.h" />
+    <ClInclude Include="Core\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
