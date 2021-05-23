@@ -5,6 +5,9 @@
 #include <iostream>
 #include "Shader/shader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -45,29 +48,96 @@ int main()
 	Shader ourShader("Shader/vertex_shader.vs", "Shader/fragment_shader.fs", nullptr);
 
 	float vertices[] = {
-		// 위치				// 컬러
-		0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 우측 하단
-		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 좌측 하단
-		0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 위 
+		// 위치				// 컬러				// 텍스쳐 좌표
+		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 우측 상단
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 우측 하단
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 좌측 하단
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 좌측 상단
 	};
 
-	unsigned int VBO, VAO;
+	unsigned int indices[] = {
+	0, 1, 3, // first triangle
+	1, 2, 3  // second triangle
+	};
+
+	unsigned int VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
 	// 위치 Attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// 컬러 Attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	// 텍스쳐 uv Attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	// wireframe polygons로 그리기
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	// 텍스쳐 좌표
+	unsigned int texture1, texture2;
+	// Texture1
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+
+	// s: x축, t: y축
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// Texture Filtering, Mipmap, 텍스쳐 픽셀 및 밉맵 보간으로 설정
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// 확대(Magnification) 필터 설정
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texrue" << std::endl;
+	}
+	stbi_image_free(data);
+
+	// Texture2
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load image, create texture and generate mipmaps
+	data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		// note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
+	ourShader.use();
+	glUniform1i(glGetUniformLocation(ourShader.shaderID, "texture1"), 0);
+	ourShader.setInt("texture2", 1);
 
 	// Loop이 시작될때마다 GLFW가 종료되었는지 확인
 	while (!glfwWindowShouldClose(window)) {
@@ -77,26 +147,16 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);	// window Clear Color 세팅 (Default Color)
 		glClear(GL_COLOR_BUFFER_BIT);			// 현재 color로 window clear
 
+		// 텍스쳐 바인드
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
 		ourShader.use();
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		int offset_x = glGetUniformLocation(ourShader.shaderID, "offset");
-		glUniform1f(offset_x, 0.5f);
-
-		// [1] Vertext Shader
-		// 하나의 정점을 입력받음
-
-		// [2] Geometry Shader
-		// 입력으로 들어온 정점들의 집합을 primitive를 구성하고, 새로운 정점을 방출하여 새로운(또는 다른) primitive를 형성하여 다른 도형으로 변환될 수 있는 과정
-
-		// [3] Rasterization (pixel로 변환)
-		// 화면의 적절한 위치의 픽셀과 매핑
-
-		// [4] Fragment Shader (=Pixel Shader)
-
-		// [5] Blending
-		// -------- Rendering 영역 --------
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);	// color buffer를 교체, single buffer 사용시 
 		glfwPollEvents();			// 키보드, 마우스 입력 이벤트 확인
@@ -104,7 +164,7 @@ int main()
 
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	//glDeleteBuffers(1, &EBO);
+	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(ourShader.shaderID);
 
 	// 할당되었던 모든 자원 정리 및 삭제
