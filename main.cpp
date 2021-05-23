@@ -9,11 +9,13 @@
 #include "stb_image.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, Shader& shader);
 
 // settings
 constexpr unsigned int SCR_WIDTH = 800;
 constexpr unsigned int SCR_HEIGHT = 600;
+
+float value = 0.2f;
 
 int main()
 {
@@ -49,10 +51,10 @@ int main()
 
 	float vertices[] = {
 		// 위치				// 컬러				// 텍스쳐 좌표
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 우측 상단
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 우측 하단
+		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // 우측 상단
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // 우측 하단
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 좌측 하단
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 좌측 상단
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // 좌측 상단
 	};
 
 	unsigned int indices[] = {
@@ -136,12 +138,14 @@ int main()
 	stbi_image_free(data);
 
 	ourShader.use();
-	glUniform1i(glGetUniformLocation(ourShader.shaderID, "texture1"), 0);
+	//glUniform1i(glGetUniformLocation(ourShader.shaderID, "texture1"), 0);
+	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
+	ourShader.setFloat("value", value);
 
 	// Loop이 시작될때마다 GLFW가 종료되었는지 확인
 	while (!glfwWindowShouldClose(window)) {
-		processInput(window);		// 입력
+		processInput(window, ourShader);		// 입력
 
 		// -------- Rendering 영역 --------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);	// window Clear Color 세팅 (Default Color)
@@ -178,8 +182,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	std::cout << "framebuffer_size_callback resize width: " << width << "height: " << height << std::endl;
 }
 
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window, Shader& shader) {
 	// ESC 눌렀을때 window 종료
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		std::cout << "key down up" << std::endl;
+		if (value < 1.0f)
+			value += 0.01f;
+		shader.setFloat("value", value);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		std::cout << "key down down" << std::endl;
+		if (value > 0.0f)
+			value -= 0.01f;
+		shader.setFloat("value", value);
+	}
 }
