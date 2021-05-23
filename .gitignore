@@ -41,3 +41,7 @@
 *.vs
 /x32
 /x64
+
+External_Libs/**
+Debug/**
+Release/**
