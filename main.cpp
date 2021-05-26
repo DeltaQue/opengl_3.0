@@ -1,12 +1,17 @@
-#pragma once
+ï»¿#pragma once
 
-#include <glad/glad.h>		// GLFW¿Í ¼ø¼­ ÁÖÀÇ!
+#include <glad/glad.h>		// GLFWì™€ ìˆœì„œ ì£¼ì˜!
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "Shader/shader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+// glm (math)
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, Shader& shader);
@@ -19,13 +24,13 @@ float value = 0.2f;
 
 int main()
 {
-	// glfw ÃÊ±âÈ­
+	// glfw ì´ˆê¸°í™”
 	glfwInit();
-	// OpenGL 3.3 ¹öÀü ¼¼ÆÃ
+	// OpenGL 3.3 ë²„ì „ ì„¸íŒ…
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-	// OpenGL Core Profile »ç¿ë ¼±¾ğ
+	// OpenGL Core Profile ì‚¬ìš© ì„ ì–¸
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
@@ -36,11 +41,11 @@ int main()
 	}
 
 	glfwMakeContextCurrent(window);
-	// window »çÀÌÁî º¯°æ callback µî·Ï
+	// window ì‚¬ì´ì¦ˆ ë³€ê²½ callback ë“±ë¡
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	// GLAD : OpenGL¿ë ÇÔ¼ö Æ÷ÀÎÅÍ °ü¸®
-	// glfwGetProcAdress : ÄÄÆÄÀÏ OS È¯°æº° ¿Ã¹Ù¸¥ ÇÔ¼ö Á¤ÀÇ
+	// GLAD : OpenGLìš© í•¨ìˆ˜ í¬ì¸í„° ê´€ë¦¬
+	// glfwGetProcAdress : ì»´íŒŒì¼ OS í™˜ê²½ë³„ ì˜¬ë°”ë¥¸ í•¨ìˆ˜ ì •ì˜
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initialize GLAD!" << std::endl;
 		return -1;
@@ -50,11 +55,11 @@ int main()
 	Shader ourShader("Shader/vertex_shader.vs", "Shader/fragment_shader.fs", nullptr);
 
 	float vertices[] = {
-		// À§Ä¡				// ÄÃ·¯				// ÅØ½ºÃÄ ÁÂÇ¥
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // ¿ìÃø »ó´Ü
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // ¿ìÃø ÇÏ´Ü
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // ÁÂÃø ÇÏ´Ü
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // ÁÂÃø »ó´Ü
+		// ìœ„ì¹˜				// ì»¬ëŸ¬				// í…ìŠ¤ì³ ì¢Œí‘œ
+		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // ìš°ì¸¡ ìƒë‹¨
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // ìš°ì¸¡ í•˜ë‹¨
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // ì¢Œì¸¡ í•˜ë‹¨
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // ì¢Œì¸¡ ìƒë‹¨
 	};
 
 	unsigned int indices[] = {
@@ -74,31 +79,31 @@ int main()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	// À§Ä¡ Attribute
+	// ìœ„ì¹˜ Attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	// ÄÃ·¯ Attribute
+	// ì»¬ëŸ¬ Attribute
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	// ÅØ½ºÃÄ uv Attribute
+	// í…ìŠ¤ì³ uv Attribute
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-	// wireframe polygons·Î ±×¸®±â
+	// wireframe polygonsë¡œ ê·¸ë¦¬ê¸°
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	// ÅØ½ºÃÄ ÁÂÇ¥
+	// í…ìŠ¤ì³ ì¢Œí‘œ
 	unsigned int texture1, texture2;
 	// Texture1
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
 
-	// s: xÃà, t: yÃà
+	// s: xì¶•, t: yì¶•
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// Texture Filtering, Mipmap, ÅØ½ºÃÄ ÇÈ¼¿ ¹× ¹Ó¸Ê º¸°£À¸·Î ¼³Á¤
+	// Texture Filtering, Mipmap, í…ìŠ¤ì³ í”½ì…€ ë° ë°‰ë§µ ë³´ê°„ìœ¼ë¡œ ì„¤ì •
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	// È®´ë(Magnification) ÇÊÅÍ ¼³Á¤
+	// í™•ëŒ€(Magnification) í•„í„° ì„¤ì •
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	int width, height, nrChannels;
@@ -143,15 +148,23 @@ int main()
 	ourShader.setInt("texture2", 1);
 	ourShader.setFloat("value", value);
 
-	// LoopÀÌ ½ÃÀÛµÉ¶§¸¶´Ù GLFW°¡ Á¾·áµÇ¾ú´ÂÁö È®ÀÎ
+	glm::mat4 trans(1.0f);
+	trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+	trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+	
+
+	unsigned int transformLoc = glGetUniformLocation(ourShader.shaderID, "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+	// Loopì´ ì‹œì‘ë ë•Œë§ˆë‹¤ GLFWê°€ ì¢…ë£Œë˜ì—ˆëŠ”ì§€ í™•ì¸
 	while (!glfwWindowShouldClose(window)) {
-		processInput(window, ourShader);		// ÀÔ·Â
+		processInput(window, ourShader);		// ì…ë ¥
 
-		// -------- Rendering ¿µ¿ª --------
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);	// window Clear Color ¼¼ÆÃ (Default Color)
-		glClear(GL_COLOR_BUFFER_BIT);			// ÇöÀç color·Î window clear
+		// -------- Rendering ì˜ì—­ --------
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);	// window Clear Color ì„¸íŒ… (Default Color)
+		glClear(GL_COLOR_BUFFER_BIT);			// í˜„ì¬ colorë¡œ window clear
 
-		// ÅØ½ºÃÄ ¹ÙÀÎµå
+		// í…ìŠ¤ì³ ë°”ì¸ë“œ
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
@@ -162,8 +175,8 @@ int main()
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		glfwSwapBuffers(window);	// color buffer¸¦ ±³Ã¼, single buffer »ç¿ë½Ã 
-		glfwPollEvents();			// Å°º¸µå, ¸¶¿ì½º ÀÔ·Â ÀÌº¥Æ® È®ÀÎ
+		glfwSwapBuffers(window);	// color bufferë¥¼ êµì²´, single buffer ì‚¬ìš©ì‹œ 
+		glfwPollEvents();			// í‚¤ë³´ë“œ, ë§ˆìš°ìŠ¤ ì…ë ¥ ì´ë²¤íŠ¸ í™•ì¸
 	}
 
 	glDeleteVertexArrays(1, &VAO);
@@ -171,19 +184,19 @@ int main()
 	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(ourShader.shaderID);
 
-	// ÇÒ´çµÇ¾ú´ø ¸ğµç ÀÚ¿ø Á¤¸® ¹× »èÁ¦
+	// í• ë‹¹ë˜ì—ˆë˜ ëª¨ë“  ìì› ì •ë¦¬ ë° ì‚­ì œ
 	glfwTerminate();
 	return 0;
 }
 
-// windowÀÇ »çÀÌÁî°¡ º¯°æµÉ¶§¸¶´Ù È£Ãâ
+// windowì˜ ì‚¬ì´ì¦ˆê°€ ë³€ê²½ë ë•Œë§ˆë‹¤ í˜¸ì¶œ
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 	std::cout << "framebuffer_size_callback resize width: " << width << "height: " << height << std::endl;
 }
 
 void processInput(GLFWwindow* window, Shader& shader) {
-	// ESC ´­·¶À»¶§ window Á¾·á
+	// ESC ëˆŒë €ì„ë•Œ window ì¢…ë£Œ
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
