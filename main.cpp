@@ -50,6 +50,9 @@ int main()
 		std::cout << "Failed to initialize GLAD!" << std::endl;
 		return -1;
 	}
+
+	// Depth Test On
+	glEnable(GL_DEPTH);
 	
 	// shaer file load
 	Shader ourShader("Shader/vertex_shader.vs", "Shader/fragment_shader.fs", nullptr);
@@ -148,13 +151,21 @@ int main()
 	ourShader.setInt("texture2", 1);
 	ourShader.setFloat("value", value);
 
-	glm::mat4 trans(1.0f);
-	trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-	trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-	
+	glm::mat4 proj(1.0f);
+	proj = glm::perspective(glm::radians(45.0f), (float)(SCR_WIDTH/ SCR_HEIGHT), 0.1f, 100.f);
+	unsigned int projectionMat = glGetUniformLocation(ourShader.shaderID, "projection");
+	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, glm::value_ptr(proj));
 
-	unsigned int transformLoc = glGetUniformLocation(ourShader.shaderID, "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+	glm::mat4 view(1.0f);
+	// 카메라를 뒤로 뺀다는 느낌
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+	unsigned int viewMat = glGetUniformLocation(ourShader.shaderID, "view");
+	glUniformMatrix4fv(viewMat, 1, GL_FALSE, glm::value_ptr(view));
+
+	glm::mat4 model(1.0f);
+	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	unsigned int modelMat = glGetUniformLocation(ourShader.shaderID, "model");
+	glUniformMatrix4fv(modelMat, 1, GL_FALSE, glm::value_ptr(model));
 
 	// Loop이 시작될때마다 GLFW가 종료되었는지 확인
 	while (!glfwWindowShouldClose(window)) {
@@ -162,7 +173,7 @@ int main()
 
 		// -------- Rendering 영역 --------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);	// window Clear Color 세팅 (Default Color)
-		glClear(GL_COLOR_BUFFER_BIT);			// 현재 color로 window clear
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// 현재 color로 Color, Depth buffer clear
 
 		// 텍스쳐 바인드
 		glActiveTexture(GL_TEXTURE0);
