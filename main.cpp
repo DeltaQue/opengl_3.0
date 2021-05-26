@@ -21,6 +21,7 @@ constexpr unsigned int SCR_WIDTH = 800;
 constexpr unsigned int SCR_HEIGHT = 600;
 
 float value = 0.2f;
+glm::vec3 offset(0.0f, 0.0f, -10.0f);
 
 int main()
 {
@@ -52,45 +53,85 @@ int main()
 	}
 
 	// Depth Test On
-	glEnable(GL_DEPTH);
+	glEnable(GL_DEPTH_TEST);
 	
 	// shaer file load
 	Shader ourShader("Shader/vertex_shader.vs", "Shader/fragment_shader.fs", nullptr);
 
+	// 큐브 6개
 	float vertices[] = {
-		// 위치				// 컬러				// 텍스쳐 좌표
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // 우측 상단
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // 우측 하단
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 좌측 하단
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // 좌측 상단
+		// 위치					// 컬러
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
-	unsigned int indices[] = {
-	0, 1, 3, // first triangle
-	1, 2, 3  // second triangle
+	// 큐브 텍스쳐 좌표
+	glm::vec3 cubePositions[] = {
+	  glm::vec3(0.0f,  0.0f,  0.0f),
+	  glm::vec3(2.0f,  5.0f, -15.0f),
+	  glm::vec3(-1.5f, -2.2f, -2.5f),
+	  glm::vec3(-3.8f, -2.0f, -12.3f),
+	  glm::vec3(2.4f, -0.4f, -3.5f),
+	  glm::vec3(-1.7f,  3.0f, -7.5f),
+	  glm::vec3(1.3f, -2.0f, -2.5f),
+	  glm::vec3(1.5f,  2.0f, -2.5f),
+	  glm::vec3(1.5f,  0.2f, -1.5f),
+	  glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	unsigned int VBO, VAO, EBO;
+	unsigned int VBO, VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 	// 위치 Attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	// 컬러 Attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 	// 텍스쳐 uv Attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// wireframe polygons로 그리기
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -151,22 +192,6 @@ int main()
 	ourShader.setInt("texture2", 1);
 	ourShader.setFloat("value", value);
 
-	glm::mat4 proj(1.0f);
-	proj = glm::perspective(glm::radians(45.0f), (float)(SCR_WIDTH/ SCR_HEIGHT), 0.1f, 100.f);
-	unsigned int projectionMat = glGetUniformLocation(ourShader.shaderID, "projection");
-	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, glm::value_ptr(proj));
-
-	glm::mat4 view(1.0f);
-	// 카메라를 뒤로 뺀다는 느낌
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-	unsigned int viewMat = glGetUniformLocation(ourShader.shaderID, "view");
-	glUniformMatrix4fv(viewMat, 1, GL_FALSE, glm::value_ptr(view));
-
-	glm::mat4 model(1.0f);
-	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	unsigned int modelMat = glGetUniformLocation(ourShader.shaderID, "model");
-	glUniformMatrix4fv(modelMat, 1, GL_FALSE, glm::value_ptr(model));
-
 	// Loop이 시작될때마다 GLFW가 종료되었는지 확인
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window, ourShader);		// 입력
@@ -180,11 +205,28 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
-
 		ourShader.use();
+
+		glm::mat4 proj(1.0f);
+		glm::mat4 view(1.0f);
+		proj = glm::perspective(glm::radians(45.0f), (float)(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.f);
+		// 카메라를 뒤로 뺀다는 느낌
+		view = glm::translate(view, offset);
+
+		ourShader.setMat4("projection", proj);
+		ourShader.setMat4("view", view);
+
 		glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		for (auto i = 0; i < 10; i++)
+		{
+			glm::mat4 model(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			//model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			ourShader.setMat4("model", model);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		glfwSwapBuffers(window);	// color buffer를 교체, single buffer 사용시 
 		glfwPollEvents();			// 키보드, 마우스 입력 이벤트 확인
@@ -192,7 +234,6 @@ int main()
 
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(ourShader.shaderID);
 
 	// 할당되었던 모든 자원 정리 및 삭제
@@ -213,15 +254,25 @@ void processInput(GLFWwindow* window, Shader& shader) {
 	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
 		std::cout << "key down up" << std::endl;
-		if (value < 1.0f)
-			value += 0.01f;
-		shader.setFloat("value", value);
+		offset.y += 0.01f;
+		shader.setFloat("offset", offset.y);
 	}
 	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 	{
 		std::cout << "key down down" << std::endl;
-		if (value > 0.0f)
-			value -= 0.01f;
-		shader.setFloat("value", value);
+		offset.y -= 0.01f;
+		shader.setFloat("offset", offset.y);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	{
+		std::cout << "key down left" << std::endl;
+		offset.x -= 0.01f;
+		shader.setFloat("offset", offset.x);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	{
+		std::cout << "key down right" << std::endl;
+		offset.x += 0.01f;
+		shader.setFloat("offset", offset.x);
 	}
 }
