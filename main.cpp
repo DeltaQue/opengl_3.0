@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "Shader/shader.h"
+#include "Render/camera.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -21,7 +22,9 @@ constexpr unsigned int SCR_WIDTH = 800;
 constexpr unsigned int SCR_HEIGHT = 600;
 
 float value = 0.2f;
-glm::vec3 offset(0.0f, 0.0f, -10.0f);
+
+float lastFrame = 0.0f;
+float deltaTime = 0.0f;
 
 int main()
 {
@@ -192,8 +195,15 @@ int main()
 	ourShader.setInt("texture2", 1);
 	ourShader.setFloat("value", value);
 
+	Camera& camera = Camera::Get();
+
 	// Loop이 시작될때마다 GLFW가 종료되었는지 확인
 	while (!glfwWindowShouldClose(window)) {
+		// Deltat Time 계산
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		processInput(window, ourShader);		// 입력
 
 		// -------- Rendering 영역 --------
@@ -209,9 +219,9 @@ int main()
 
 		glm::mat4 proj(1.0f);
 		glm::mat4 view(1.0f);
-		proj = glm::perspective(glm::radians(45.0f), (float)(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.f);
+		proj = glm::perspective(camera.GetFov(), (float)(SCR_WIDTH / SCR_HEIGHT), camera.GetClipping().x, camera.GetClipping().y);
 		// 카메라를 뒤로 뺀다는 느낌
-		view = glm::translate(view, offset);
+		view = glm::translate(view, glm::vec3(camera.GetViewPort()));
 
 		ourShader.setMat4("projection", proj);
 		ourShader.setMat4("view", view);
@@ -248,31 +258,35 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 void processInput(GLFWwindow* window, Shader& shader) {
+	float cameraSpeed = 2.5f * deltaTime;
+	Camera& camera = Camera::Get();
+	glm::vec4 viewPort = camera.GetViewPort();
+
 	// ESC 눌렀을때 window 종료
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
 		std::cout << "key down up" << std::endl;
-		offset.y += 0.01f;
-		shader.setFloat("offset", offset.y);
+		viewPort.y += -cameraSpeed * 0.5f;
+		camera.SetViewPort(viewPort);
 	}
 	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 	{
 		std::cout << "key down down" << std::endl;
-		offset.y -= 0.01f;
-		shader.setFloat("offset", offset.y);
+		viewPort.y += cameraSpeed * 0.5f;
+		camera.SetViewPort(viewPort);
 	}
 	else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 	{
 		std::cout << "key down left" << std::endl;
-		offset.x -= 0.01f;
-		shader.setFloat("offset", offset.x);
+		viewPort.x += cameraSpeed * 0.5f;
+		camera.SetViewPort(viewPort);
 	}
 	else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 	{
 		std::cout << "key down right" << std::endl;
-		offset.x += 0.01f;
-		shader.setFloat("offset", offset.x);
+		viewPort.x += -cameraSpeed * 0.5f;
+		camera.SetViewPort(viewPort);
 	}
 }

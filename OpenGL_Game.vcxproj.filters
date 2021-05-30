@@ -16,6 +16,9 @@
     <Filter Include="Shader">
       <UniqueIdentifier>{a68448d2-4765-4bfb-bd87-44d81294bdb2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{8dea91b1-9d85-4c4b-b073-acb4c940f3d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -37,6 +40,9 @@
     </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\camera.h">
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
