@@ -15,16 +15,26 @@
 #include <glm/gtc/type_ptr.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window, Shader& shader);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void processInput(GLFWwindow* window);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // settings
-constexpr unsigned int SCR_WIDTH = 800;
-constexpr unsigned int SCR_HEIGHT = 600;
+constexpr unsigned int SCR_WIDTH = 1280;
+constexpr unsigned int SCR_HEIGHT = 720;
 
-float value = 0.2f;
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
 
 float lastFrame = 0.0f;
 float deltaTime = 0.0f;
+
+
+glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+glm::vec3 toyColor(1.0f, 0.5f, 0.31f);
+glm::vec3 result = lightColor * toyColor; // 1.0f, 0.5f, 0.31f
 
 int main()
 {
@@ -47,6 +57,11 @@ int main()
 	glfwMakeContextCurrent(window);
 	// window 사이즈 변경 callback 등록
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	// Mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	// GLAD : OpenGL용 함수 포인터 관리
 	// glfwGetProcAdress : 컴파일 OS 환경별 올바른 함수 정의
@@ -193,9 +208,6 @@ int main()
 	//glUniform1i(glGetUniformLocation(ourShader.shaderID, "texture1"), 0);
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
-	ourShader.setFloat("value", value);
-
-	Camera& camera = Camera::Get();
 
 	// Loop이 시작될때마다 GLFW가 종료되었는지 확인
 	while (!glfwWindowShouldClose(window)) {
@@ -204,7 +216,7 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		processInput(window, ourShader);		// 입력
+		processInput(window);		// 입력
 
 		// -------- Rendering 영역 --------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);	// window Clear Color 세팅 (Default Color)
@@ -219,9 +231,9 @@ int main()
 
 		glm::mat4 proj(1.0f);
 		glm::mat4 view(1.0f);
-		proj = glm::perspective(camera.GetFov(), (float)(SCR_WIDTH / SCR_HEIGHT), camera.GetClipping().x, camera.GetClipping().y);
+		proj = glm::perspective(glm::radians(camera.Zoom), (float)(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 		// 카메라를 뒤로 뺀다는 느낌
-		view = glm::translate(view, glm::vec3(camera.GetViewPort()));
+		view = camera.GetViewMatrix();
 
 		ourShader.setMat4("projection", proj);
 		ourShader.setMat4("view", view);
@@ -252,41 +264,49 @@ int main()
 }
 
 // window의 사이즈가 변경될때마다 호출
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
 	glViewport(0, 0, width, height);
 	std::cout << "framebuffer_size_callback resize width: " << width << "height: " << height << std::endl;
 }
 
-void processInput(GLFWwindow* window, Shader& shader) {
-	float cameraSpeed = 2.5f * deltaTime;
-	Camera& camera = Camera::Get();
-	glm::vec4 viewPort = camera.GetViewPort();
-
-	// ESC 눌렀을때 window 종료
+void processInput(GLFWwindow* window)
+{
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.ProcessKeyboard(RIGHT, deltaTime);
+
+	// FPS Camera, xy평면에 있도록함
+	camera.Position.y = 0.0f;
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
 	{
-		std::cout << "key down up" << std::endl;
-		viewPort.y += -cameraSpeed * 0.5f;
-		camera.SetViewPort(viewPort);
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
 	}
-	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-	{
-		std::cout << "key down down" << std::endl;
-		viewPort.y += cameraSpeed * 0.5f;
-		camera.SetViewPort(viewPort);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-	{
-		std::cout << "key down left" << std::endl;
-		viewPort.x += cameraSpeed * 0.5f;
-		camera.SetViewPort(viewPort);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-	{
-		std::cout << "key down right" << std::endl;
-		viewPort.x += -cameraSpeed * 0.5f;
-		camera.SetViewPort(viewPort);
-	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
 }
