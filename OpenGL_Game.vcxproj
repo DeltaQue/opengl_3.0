@@ -162,7 +162,12 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="lighting_maps.fs" />
+    <None Include="lighting_maps.vs" />
+    <None Include="Shader\ambient_light.fs" />
     <None Include="Shader\fragment_shader.fs" />
+    <None Include="Shader\light.fs" />
+    <None Include="Shader\light.vs" />
     <None Include="Shader\vertex_shader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
