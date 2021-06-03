@@ -164,6 +164,8 @@
   <ItemGroup>
     <None Include="lighting_maps.fs" />
     <None Include="Shader\ambient_light.fs" />
+    <None Include="Shader\flash_light.fs" />
+    <None Include="Shader\flash_light.vs" />
     <None Include="Shader\fragment_shader.fs" />
     <None Include="Shader\light.fs" />
     <None Include="Shader\light.vs" />
