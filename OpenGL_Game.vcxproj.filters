@@ -61,10 +61,16 @@
     <None Include="Shader\ambient_light.fs">
       <Filter>Shader</Filter>
     </None>
-    <None Include="lighting_maps.vs">
+    <None Include="lighting_maps.fs">
       <Filter>Shader</Filter>
     </None>
-    <None Include="lighting_maps.fs">
+    <None Include="Shader\point_light.vs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\point_light.fs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\lighting_maps.vs">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>
